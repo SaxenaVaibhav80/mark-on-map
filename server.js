@@ -3,6 +3,7 @@ const bodyparser = require('body-parser')
 const app = express()
 const pg= require('pg')
 const ejs = require('ejs')
+var marked_country
 app.use(bodyparser.urlencoded({extended:true}))
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -29,7 +30,11 @@ db.query("SELECT * FROM countries", (err,res)=>
     db.end();
 });
 
-
+app.post('/',(req,res)=>
+{
+  marked_country=req.body.country
+  res.redirect('/')
+})
 
 app.get('/',(req,res)=>
 {
