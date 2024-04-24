@@ -17,6 +17,17 @@ const db = new pg.Client({
 });
 
 db.connect();
+
+db.query('SELECT * FROM visited',(err,res)=>
+{
+  if(err)
+  {
+     console.log(err)
+  }else
+  {
+  row=res.rows
+  }
+})
 app.post('/', async(req,res)=>
 {
     marked_country = await req.body.country;
@@ -32,24 +43,21 @@ app.post('/', async(req,res)=>
           if(err)
          {
            console.log(err)
-         }
-         else{
-            console.log(res.rows)
+         }else{
+            console.log(res)
          }
         })
     // fetching rows from database-->
-    
-        db.query('SELECT * FROM visited',(err,res)=>
-      {
-        if(err)
-        {
-           console.log(err)
-        }else
-        {
-        row=res.rows
-        }
-      })
-
+    db.query('SELECT * FROM visited',(err,res)=>
+    {
+      if(err)
+     {
+     console.log(err)
+     }else
+     {
+       row=res.rows
+      }
+    })
         res.redirect('/')
     }).catch((err) => {
         console.error('Error:', err);
@@ -57,12 +65,11 @@ app.post('/', async(req,res)=>
       });
 })
 
-
-
 app.get('/',(req,res)=>
 {
     if(row){
-      res.render('map')
+      console.log(row)
+      res.render('map', {visit_list:row})
     }else{
         res.render('map')
     }
