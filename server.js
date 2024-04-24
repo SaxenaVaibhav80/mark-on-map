@@ -17,23 +17,27 @@ const db = new pg.Client({
 });
 
 db.connect();
-
-db.query("SELECT * FROM countries", (err,res)=>
+app.post('/', async(req,res)=>
 {
-    if(err){
-        console.log('error found , no data recieved')
-    }
-    else{
-        data=res.rows;
-    }
+    const marked_country = await req.body.country;
 
-    db.end();
-});
+    Promise.resolve(marked_country)
+      .then((country) => {
+        const insertQuery =("INSERT INTO visited (country) VALUES ($1)")
+        db.query(insertQuery,[country],(err,res)=>
+        {
+          if(err)
+         {
+           console.log(err)
+         }
+        })
 
-app.post('/',(req,res)=>
-{
-  marked_country=req.body.country
-  res.redirect('/')
+        res.redirect('/')
+    })
+      .catch((err) => {
+        console.error('Error:', err);
+        res.status(500).send('Error occurred');
+      });
 })
 
 app.get('/',(req,res)=>
