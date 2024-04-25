@@ -4,6 +4,9 @@ const app = express()
 const pg= require('pg')
 const ejs = require('ejs')
 var marked_country
+var result
+var result2
+var list=[]
 var row
 app.use(bodyparser.urlencoded({extended:true}))
 app.set('view engine', 'ejs');
@@ -18,60 +21,36 @@ const db = new pg.Client({
 
 db.connect();
 
-db.query('SELECT * FROM visited',(err,res)=>
-{
-  if(err)
-  {
-     console.log(err)
-  }else
-  {
-  row=res.rows
-  }
-})
-app.post('/', async(req,res)=>
-{
-    marked_country = await req.body.country;
-    marked_country=marked_country.charAt(0).toUpperCase()+ marked_country.slice(1)
-    Promise.resolve(marked_country)
-      .then((country) => {
+// fetching all code of country in the visited table 
 
-        // inserting into database-->
+app.post('/',async(req,res)=>{
 
-        const insertQuery =("INSERT INTO visited (country) VALUES ($1)")
-        db.query(insertQuery,[country],(err,res)=>
-        {
-          if(err)
-         {
-           console.log(err)
-         }else{
-            console.log(res)
-         }
-        })
-    // fetching rows from database-->
-    db.query('SELECT * FROM visited',(err,res)=>
-    {
-      if(err)
-     {
-     console.log(err)
-     }else
-     {
-       row=res.rows
-      }
-    })
-        res.redirect('/')
-    }).catch((err) => {
-        console.error('Error:', err);
-        res.status(500).send('Error occurred');
-      });
+try{
+  marked_country = req.body.country
+  marked_country = marked_country.charAt(0).toUpperCase() + marked_country.slice(1);
+  
+  const query = ('SELECT code FROM countries WHERE country = ($1)')
+  result = await db.query(query,[marked_country])
+  const cod=(result.rows[0].code)
+  insert_query=('INSERT INTO visited (code) VALUES ($1)')
+  result2= await db.query(insert_query,[cod])
+  
+}catch(err){
+  console.log(err)
+}
+res.redirect('/')
 })
 
-app.get('/',(req,res)=>
+app.get('/',async(req,res)=>
 {
-    if(row){
-      console.log(row)
-      res.render('map', {visit_list:row})
-    }else{
-        res.render('map')
-    }
+  const resolve= await db.query('SELECT code FROM visited')
+      row=resolve.rows
+      for(var i=0;i<row.length;i++)
+     {
+      list[i]=row[i].code
+     }
+
+  res.render('map',{marked_country_list:list})
 })
 app.listen(3000)
+
